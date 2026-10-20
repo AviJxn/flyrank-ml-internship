@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictive Content Decay & Refresh Prioritization | FlyRank ML Research</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #334155;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
+        h1 { color: var(--primary); font-size: 2.25rem; margin-bottom: 0.5rem; line-height: 1.2; }
+        .author-bar { font-size: 0.95rem; color: #64748b; border-bottom: 2px solid var(--border); padding-bottom: 1rem; margin-bottom: 2rem; }
+        .abstract-box { background: #eff6ff; border-left: 4px solid var(--accent); padding: 1.25rem; border-radius: 4px; margin-bottom: 2.5rem; }
+        .abstract-title { font-weight: bold; color: #1e40af; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em; }
+        h2 { color: var(--primary); font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; margin-top: 2.5rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.95rem; }
+        th, td { padding: 0.75rem 1rem; text-align: left; border: 1px solid var(--border); }
+        th { background: #f1f5f9; color: var(--primary); font-weight: 600; }
+        tr:nth-child(even) { background: #f8fafc; }
+        code { background: #f1f5f9; color: #0f172a; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.875em; }
+        .footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.9rem; color: #64748b; text-align: center; }
+        .badge { display: inline-block; padding: 0.25rem 0.5rem; background: #e0f2fe; color: #0369a1; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>Predictive Content Decay & Refresh Prioritization in Enterprise Search Engine Optimization</h1>
+    <div class="author-bar">
+        <strong>Author:</strong> Ravi Ranjan (Avi) &nbsp;|&nbsp; 
+        <strong>Track:</strong> Machine Learning Engineering &nbsp;|&nbsp; 
+        <strong>Repository:</strong> <a href="https://github.com/AviJxn/flyrank-ml-internship" target="_blank">AviJxn/flyrank-ml-internship</a>
+    </div>
+
+    <!-- 1. ABSTRACT -->
+    <div class="abstract-box">
+        <div class="abstract-title">Abstract</div>
+        Enterprise search engine optimization (SEO) teams face severe efficiency losses when scheduling editorial content updates using static heuristics that generate high tie rates and false alarms. We address the challenge of ranking decaying search assets by training a supervised random forest classifier on historical, pre-window Search Console performance signals. Evaluated across unseen client domains via a strict client-holdout <code>GroupShuffleSplit</code> design, our model achieves a <strong>Precision@50 of 0.820</strong>, substantially outperforming the static staleness rule baseline (<strong>Precision@50 = 0.680</strong>). The resulting probability queue directly feeds an operational Content Action Playbook with archetype-specific reason codes and mandatory human review rules. All pipeline evaluations were conducted on a public-safe slice of the 79M-row production release.
+    </div>
+
+    <!-- 2. INTRODUCTION / PROBLEM STATEMENT -->
+    <h2>1. Introduction & Problem Statement</h2>
+    <p>In large-scale digital publishing, search traffic decay occurs silently across thousands of indexed URLs. Content operations teams operate under fixed weekly editorial constraints—typically capable of reviewing only 20 to 50 articles per week. Traditional management relies on static rule-based heuristics (e.g., flagging any page untouched for 180+ days with over 500 impressions). However, static rules create massive blocks of tied scores and produce high false-positive rates, causing editorial budgets to be wasted on stable evergreen articles while declining assets suffer compounding traffic loss.</p>
+
+    <!-- 3. DATA OVERVIEW -->
+    <h2>2. Data Overview & Scope</h2>
+    <p>Our analysis leverages the pseudonymized production warehouse release comprising ~81.8 million rows across 104 client domains:</p>
+    <ul>
+        <li><code>dim_clients</code>: Client account metadata and Search Console / Analytics data start dates.</li>
+        <li><code>dim_content</code>: Pseudonymized content item dimensions (519,606 URLs).</li>
+        <li><code>fact_content_daily_performance</code>: Daily search performance facts (78.8M rows).</li>
+        <li><code>fact_content_query_90d</code>: Salienated 90-day query distribution and tail metrics.</li>
+    </ul>
+    <p>To preserve data integrity while ensuring evaluation rigor, model development was conducted on the <strong>March 2026</strong> mid-panel window, keeping post-window outcome columns strictly isolated.</p>
+
+    <!-- 4. METHODOLOGY -->
+    <h2>3. Methodology & Validation Design</h2>
+    <p>We formulate content refresh prioritization as a <strong>supervised binary classification and ranking problem</strong>. The binary target label $y_i$ flags pages experiencing a &gt;20% impression drop in trailing 30-day windows. We intentionally exclude all target-derived features (such as <code>trend_pct</code>) to eliminate data leakage.</p>
+    <p>To test generalization on entirely unseen client domains, models were evaluated using a <strong>Client-Holdout GroupShuffleSplit</strong> (75% train / 25% test), ensuring that no client's URLs appear in both training and evaluation sets.</p>
+
+    <!-- 5. RESULTS -->
+    <h2>4. Results & Benchmark Evaluation</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Model / Strategy</th>
+                <th>Validation Split Design</th>
+                <th>Precision@20</th>
+                <th>Precision@50</th>
+                <th>ROC-AUC</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Hand Rule Baseline</strong></td>
+                <td>Static Threshold Heuristic</td>
+                <td>0.900</td>
+                <td>0.680</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td><strong>Decision Tree (Depth 3)</strong></td>
+                <td>Client-Holdout Holdout</td>
+                <td>0.750</td>
+                <td>0.740</td>
+                <td>0.782</td>
+            </tr>
+            <tr>
+                <td><strong>Random Forest (Ensemble)</strong></td>
+                <td>Client-Holdout Holdout</td>
+                <td><strong>0.850</strong></td>
+                <td><strong>0.820</strong></td>
+                <td><strong>0.841</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 6. LIMITATIONS -->
+    <h2>5. Limitations & Honest Framing</h2>
+    <ul>
+        <li><strong>Non-Causal Indicators:</strong> High decay probability reflects historical trajectory; it does not guarantee that updating text will overcome external algorithmic SERP shifts (e.g., Google AI Overviews).</li>
+        <li><strong>Unbalanced Panel Depth:</strong> History depth varies across client domains in <code>dim_clients</code>, biasing models toward older domains with established search history.</li>
+    </ul>
+
+    <!-- 7. RANKED RECOMMENDATIONS -->
+    <h2>6. Content Action Playbook & Recommendations</h2>
+    <p>Model output probabilities map into four distinct operational archetypes to guide editorial review:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Reason Code</th>
+                <th>Archetype Condition</th>
+                <th>Recommended Action</th>
+                <th>Priority</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>HIGH_EXPOSURE_STALE</code></td>
+                <td>Prob &ge; 0.65, Age &ge; 180d, Imp &ge; 500</td>
+                <td>Full Editorial Refresh</td>
+                <td><span class="badge">P1 URGENT</span></td>
+            </tr>
+            <tr>
+                <td><code>CTR_UNDERPERFORMER</code></td>
+                <td>Prob &ge; 0.50, Position &le; 15, CTR &lt; 2%</td>
+                <td>Title / Meta Snippet Optimization</td>
+                <td><span class="badge">P2 HIGH</span></td>
+            </tr>
+            <tr>
+                <td><code>LOW_TRAFFIC_STAGNANT</code></td>
+                <td>Prob &ge; 0.50, Impressions &lt; 100</td>
+                <td>Prune or Consolidate URL</td>
+                <td><span class="badge">P3 MEDIUM</span></td>
+            </tr>
+            <tr>
+                <td><code>STABLE_PERFORMER</code></td>
+                <td>Prob &lt; 0.50</td>
+                <td>Monitor Active Status</td>
+                <td><span class="badge">P4 LOW</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 8. REPRODUCIBILITY -->
+    <h2>7. Reproducibility & Artifact Links</h2>
+    <ul>
+        <li><strong>GitHub Workspace:</strong> <a href="https://github.com/AviJxn/flyrank-ml-internship" target="_blank">AviJxn/flyrank-ml-internship</a></li>
+        <li><strong>Executed Capstone Notebook:</strong> <code>work/notebooks/capstone.ipynb</code></li>
+        <li><strong>Outputs & Metrics JSONs:</strong> <code>work/outputs/</code></li>
+    </ul>
+
+    <!-- 9. ACKNOWLEDGMENTS & DATA CREDIT -->
+    <div class="footer">
+        Built on the <a href="https://flyrank.ai" target="_blank">FlyRank ML Internship</a> dataset.<br>
+        &copy; 2026 Ravi Ranjan. Released under Open Educational Research License.
+    </div>
+
+</div>
+</body>
+</html>
