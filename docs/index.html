@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Predictive Content Decay & Refresh Prioritization | FlyRank ML Research</title>
+    <title>Predictive Content Decay & Refresh Prioritisation | FlyRank ML Research</title>
     <style>
         :root {
             --primary: #1e293b;
@@ -47,41 +47,43 @@
 <body>
 <div class="container">
 
-    <h1>Predictive Content Decay & Refresh Prioritization in Enterprise Search Engine Optimization</h1>
+    <h1>Predictive Content Decay & Refresh Prioritisation in Enterprise Search Engine Optimisation</h1>
     <div class="author-bar">
         <strong>Author:</strong> Ravi Ranjan (Avi) &nbsp;|&nbsp; 
         <strong>Track:</strong> Machine Learning Engineering &nbsp;|&nbsp; 
         <strong>Repository:</strong> <a href="https://github.com/AviJxn/flyrank-ml-internship" target="_blank">AviJxn/flyrank-ml-internship</a>
     </div>
 
-    <!-- 1. ABSTRACT -->
+    <!-- 0. ABSTRACT -->
     <div class="abstract-box">
         <div class="abstract-title">Abstract</div>
-        Enterprise search engine optimization (SEO) teams face severe efficiency losses when scheduling editorial content updates using static heuristics that generate high tie rates and false alarms. We address the challenge of ranking decaying search assets by training a supervised random forest classifier on historical, pre-window Search Console performance signals. Evaluated across unseen client domains via a strict client-holdout <code>GroupShuffleSplit</code> design, our model achieves a <strong>Precision@50 of 0.820</strong>, substantially outperforming the static staleness rule baseline (<strong>Precision@50 = 0.680</strong>). The resulting probability queue directly feeds an operational Content Action Playbook with archetype-specific reason codes and mandatory human review rules. All pipeline evaluations were conducted on a public-safe slice of the 79M-row production release.
+        Enterprise search engine optimisation (SEO) teams face severe efficiency bottlenecks when scheduling editorial content updates using static heuristics, which routinely generate high tie rates and false alarms. To resolve this challenge, we developed a supervised Random Forest classifier that ranks decaying search assets using historical, pre-window Search Console performance signals. Evaluated across unseen client domains via a rigorous client-holdout <code>GroupShuffleSplit</code> design, the model achieves a Precision@50 of 0.820, substantially outperforming the static staleness baseline (Precision@50 = 0.680). The resulting probability queue directly integrates into an operational Content Action Playbook, delivering archetype-specific reason codes and mandatory human-review parameters. All pipeline evaluations were conducted on a public-safe slice of a 79-million-row production warehouse release.
     </div>
 
-    <!-- 2. INTRODUCTION / PROBLEM STATEMENT -->
+    <!-- 1. INTRODUCTION / PROBLEM STATEMENT -->
     <h2>1. Introduction & Problem Statement</h2>
-    <p>In large-scale digital publishing, search traffic decay occurs silently across thousands of indexed URLs. Content operations teams operate under fixed weekly editorial constraints—typically capable of reviewing only 20 to 50 articles per week. Traditional management relies on static rule-based heuristics (e.g., flagging any page untouched for 180+ days with over 500 impressions). However, static rules create massive blocks of tied scores and produce high false-positive rates, causing editorial budgets to be wasted on stable evergreen articles while declining assets suffer compounding traffic loss.</p>
+    <p>In large-scale digital publishing, organic search traffic decay occurs silently across thousands of indexed URLs. Content operations teams operate under strict weekly editorial constraints—typically possessing the bandwidth to review and refresh only 20 to 50 articles per week.</p>
+    <p>Traditional portfolio management relies on static, rule-based heuristics (e.g., flagging any page untouched for 180+ days that maintains over 500 impressions). However, these rigid rules create significant operational friction: they produce high false-positive rates and fail to differentiate priority among tied scores. Consequently, highly valuable editorial budgets are frequently wasted refreshing stable, evergreen articles, while genuinely decaying assets suffer compounding traffic and revenue loss. This paper presents a machine-learned approach to resolve this operational inefficiency.</p>
 
-    <!-- 3. DATA OVERVIEW -->
+    <!-- 2. DATA OVERVIEW -->
     <h2>2. Data Overview & Scope</h2>
-    <p>Our analysis leverages the pseudonymized production warehouse release comprising ~81.8 million rows across 104 client domains:</p>
+    <p>This analysis leverages a pseudonymised production warehouse release comprising approximately 81.8 million rows across 104 distinct client domains. The core schema includes:</p>
     <ul>
-        <li><code>dim_clients</code>: Client account metadata and Search Console / Analytics data start dates.</li>
-        <li><code>dim_content</code>: Pseudonymized content item dimensions (519,606 URLs).</li>
-        <li><code>fact_content_daily_performance</code>: Daily search performance facts (78.8M rows).</li>
-        <li><code>fact_content_query_90d</code>: Salienated 90-day query distribution and tail metrics.</li>
+        <li><code>dim_clients</code>: Client account metadata and historical data ingestion start dates for Search Console and Google Analytics.</li>
+        <li><code>dim_content</code>: Pseudonymised content item dimensions representing 519,606 unique URLs.</li>
+        <li><code>fact_content_daily_performance</code>: Daily search performance metrics (78.8 million rows).</li>
+        <li><code>fact_content_query_90d</code>: Salienated 90-day query distribution and tail performance metrics.</li>
     </ul>
-    <p>To preserve data integrity while ensuring evaluation rigor, model development was conducted on the <strong>March 2026</strong> mid-panel window, keeping post-window outcome columns strictly isolated.</p>
+    <p>To preserve strict data integrity and ensure evaluation rigor, model development was constrained to the <strong>March 2026</strong> mid-panel window. Post-window outcome columns were securely isolated to prevent prospective data leakage.</p>
 
-    <!-- 4. METHODOLOGY -->
+    <!-- 3. METHODOLOGY -->
     <h2>3. Methodology & Validation Design</h2>
-    <p>We formulate content refresh prioritization as a <strong>supervised binary classification and ranking problem</strong>. The binary target label $y_i$ flags pages experiencing a &gt;20% impression drop in trailing 30-day windows. We intentionally exclude all target-derived features (such as <code>trend_pct</code>) to eliminate data leakage.</p>
-    <p>To test generalization on entirely unseen client domains, models were evaluated using a <strong>Client-Holdout GroupShuffleSplit</strong> (75% train / 25% test), ensuring that no client's URLs appear in both training and evaluation sets.</p>
+    <p>We formulate content refresh prioritisation as a supervised binary classification and learning-to-rank problem. The binary target label $y_i$ flags pages experiencing a >20% impression degradation within trailing 30-day windows. We intentionally excluded all target-derived features (such as <code>trend_pct</code>) from the input matrix to eliminate target leakage.</p>
+    <p>To guarantee the model's ability to generalise to entirely unseen client domains, all models were evaluated using a <strong>Client-Holdout <code>GroupShuffleSplit</code></strong> (75% training / 25% testing). This strict grouping ensures that no individual client's URLs appear in both the training and evaluation phases.</p>
 
-    <!-- 5. RESULTS -->
+    <!-- 4. RESULTS -->
     <h2>4. Results & Benchmark Evaluation</h2>
+    <p>The Random Forest ensemble demonstrated superior precision and discrimination capabilities when evaluated on the identical unseen client test split.</p>
     <table>
         <thead>
             <tr>
@@ -102,14 +104,14 @@
             </tr>
             <tr>
                 <td><strong>Decision Tree (Depth 3)</strong></td>
-                <td>Client-Holdout Holdout</td>
+                <td>Client-Holdout <code>GroupShuffleSplit</code></td>
                 <td>0.750</td>
                 <td>0.740</td>
                 <td>0.782</td>
             </tr>
             <tr>
                 <td><strong>Random Forest (Ensemble)</strong></td>
-                <td>Client-Holdout Holdout</td>
+                <td>Client-Holdout <code>GroupShuffleSplit</code></td>
                 <td><strong>0.850</strong></td>
                 <td><strong>0.820</strong></td>
                 <td><strong>0.841</strong></td>
@@ -117,16 +119,16 @@
         </tbody>
     </table>
 
-    <!-- 6. LIMITATIONS -->
+    <!-- 5. LIMITATIONS -->
     <h2>5. Limitations & Honest Framing</h2>
     <ul>
-        <li><strong>Non-Causal Indicators:</strong> High decay probability reflects historical trajectory; it does not guarantee that updating text will overcome external algorithmic SERP shifts (e.g., Google AI Overviews).</li>
-        <li><strong>Unbalanced Panel Depth:</strong> History depth varies across client domains in <code>dim_clients</code>, biasing models toward older domains with established search history.</li>
+        <li><strong>Non-Causal Indicators:</strong> A high predicted decay probability reflects a historical trajectory; it does not guarantee that updating the on-page text will overcome external algorithmic SERP shifts (e.g., the introduction of Google AI Overviews).</li>
+        <li><strong>Unbalanced Panel Depth:</strong> Historical data depth varies significantly across client domains within <code>dim_clients</code>, inherently biasing models toward older, more established domains with richer search histories.</li>
     </ul>
 
-    <!-- 7. RANKED RECOMMENDATIONS -->
+    <!-- 6. RANKED RECOMMENDATIONS -->
     <h2>6. Content Action Playbook & Recommendations</h2>
-    <p>Model output probabilities map into four distinct operational archetypes to guide editorial review:</p>
+    <p>Model output probabilities are mapped into four distinct operational archetypes to guide precise editorial review.</p>
     <table>
         <thead>
             <tr>
@@ -146,7 +148,7 @@
             <tr>
                 <td><code>CTR_UNDERPERFORMER</code></td>
                 <td>Prob &ge; 0.50, Position &le; 15, CTR &lt; 2%</td>
-                <td>Title / Meta Snippet Optimization</td>
+                <td>Title / Meta Snippet Optimisation</td>
                 <td><span class="badge">P2 HIGH</span></td>
             </tr>
             <tr>
@@ -164,7 +166,7 @@
         </tbody>
     </table>
 
-    <!-- 8. REPRODUCIBILITY -->
+    <!-- 7. REPRODUCIBILITY -->
     <h2>7. Reproducibility & Artifact Links</h2>
     <ul>
         <li><strong>GitHub Workspace:</strong> <a href="https://github.com/AviJxn/flyrank-ml-internship" target="_blank">AviJxn/flyrank-ml-internship</a></li>
@@ -172,7 +174,7 @@
         <li><strong>Outputs & Metrics JSONs:</strong> <code>work/outputs/</code></li>
     </ul>
 
-    <!-- 9. ACKNOWLEDGMENTS & DATA CREDIT -->
+    <!-- 8. ACKNOWLEDGMENTS & DATA CREDIT -->
     <div class="footer">
         Built on the <a href="https://flyrank.ai" target="_blank">FlyRank ML Internship</a> dataset.<br>
         &copy; 2026 Ravi Ranjan. Released under Open Educational Research License.
