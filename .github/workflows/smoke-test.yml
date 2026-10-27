@@ -60,10 +60,6 @@ jobs:
           # paper_url.txt holds a real URL (final state), it fails the build - a finished
           # track must not ship unexecuted deliverables. Fresh skeletons stay silent.
           import json, glob, sys
-          TEMPLATE_CODE = (
-              "# This cell is for CODE (numbers, a query, a check).\n"
-              "# Write your text answer in the cell ABOVE this one — typing sentences here breaks Run All.\n"
-          )
           url = ""
           try:
               url = open("submission/paper_url.txt").readline().strip()
@@ -71,14 +67,28 @@ jobs:
               pass
           final = url.startswith("https://")
           bad = []
+          template_cell = [
+              "# This cell is for CODE (numbers, a query, a check).",
+              "# Write your text answer in the cell ABOVE this one — typing sentences here breaks Run All.",
+          ]
+
+          def is_template_code(src):
+              lines = [ln.strip() for ln in src.splitlines() if ln.strip()]
+              return lines == template_cell
+
           for p in sorted(glob.glob("work/notebooks/*.ipynb")):
               try:
                   nb = json.load(open(p))
               except Exception:
                   continue
               code = [c for c in nb.get("cells", []) if c.get("cell_type") == "code"]
-              non_template_code = [c for c in code if "".join(c.get("source", [])) != TEMPLATE_CODE]
-              src = sum(len("".join(c.get("source", []))) for c in non_template_code)
+              non_template_code = []
+              src = 0
+              for c in code:
+                  cell_src = "".join(c.get("source", []))
+                  if not is_template_code(cell_src):
+                      non_template_code.append(c)
+                      src += len(cell_src)
               has_out = any(c.get("outputs") for c in code)
               if non_template_code and src > 200 and not has_out:
                   kind = "error" if final else "warning"
